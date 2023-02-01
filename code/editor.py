@@ -3,6 +3,7 @@ from pygame.math import Vector2 as vector
 from pygame.mouse import get_pressed as mouse_btns
 from pygame.mouse import get_pos as mouse_pos
 from settings import *
+from menu import Menu
 
 
 class Editor:
@@ -18,6 +19,8 @@ class Editor:
         self.support_line_surf.set_alpha(50)
 
         self.selection_index = 2
+
+        self.menu = Menu()
 
 
     def event_loop(self):
@@ -82,3 +85,4 @@ class Editor:
 
         self.draw_tile()
         pygame.draw.circle(self.display_surface, 'red', self.origin, 10)
+        self.menu.display()
