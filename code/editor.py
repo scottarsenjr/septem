@@ -13,6 +13,13 @@ class Editor:
         self.pan_active = False
         self.pan_offset = vector()
 
+        self.support_line_surf = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+        self.support_line_surf.set_colorkey('green')
+        self.support_line_surf.set_alpha(50)
+
+        self.selection_index = 2
+
+
     def event_loop(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -39,6 +46,15 @@ class Editor:
         if self.pan_active:
             self.origin = vector(mouse_pos()) - self.pan_offset
 
+    def selection_hotkeys(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                self.selection_index += 1
+            if event.key == pygame.K_LEFT:
+                self.selection_index -= 1
+        self.selection_index = max(2, min(self.selection_index, 18))
+
+
     def draw_tile(self):
         cols = WINDOW_WIDTH // TILE_SIZE
         rows = WINDOW_HEIGHT // TILE_SIZE
@@ -48,13 +64,17 @@ class Editor:
             y=self.origin.y - int(self.origin.y / TILE_SIZE) * TILE_SIZE
         )
 
+        self.support_line_surf.fill('green')
+
         for col in range(cols + 1):
             x = offset_vector.x + col * TILE_SIZE
-            pygame.draw.line(self.display_surface, LINE_COLOR, (x, 0), (x, WINDOW_HEIGHT))
+            pygame.draw.line(self.support_line_surf, LINE_COLOR, (x, 0), (x, WINDOW_HEIGHT))
 
         for row in range(rows + 1):
             y = offset_vector.y + row * TILE_SIZE
-            pygame.draw.line(self.display_surface, LINE_COLOR, (0, y), (WINDOW_WIDTH, y))
+            pygame.draw.line(self.support_line_surf, LINE_COLOR, (0, y), (WINDOW_WIDTH, y))
+
+        self.display_surface.blit(self.support_line_surf, (0, 0))
 
     def run(self, tickrate):
         self.event_loop()
