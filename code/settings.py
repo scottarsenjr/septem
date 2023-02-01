@@ -52,3 +52,28 @@ EDITOR_DATA = {
     18: {'style': 'palm_bg', 'type': 'object', 'menu': 'palm bg', 'menu_surf': 'graphics/menu/right_bg.png',
          'preview': 'graphics/preview/right_bg.png', 'graphics': 'graphics/terrain/palm/right_bg'},
 }
+
+NEIGHBOR_DIRECTIONS = {
+    'A': (0, -1),
+    'B': (1, -1),
+    'C': (1, 0),
+    'D': (1, 1),
+    'E': (0, 1),
+    'F': (-1, 1),
+    'G': (-1, 0),
+    'H': (-1, -1)
+}
+
+LEVEL_LAYERS = {
+    'clouds': 1,
+    'ocean': 2,
+    'bg': 3,
+    'water': 4,
+    'main': 5
+}
+
+# colors
+SKY_COLOR = '#ddc6a1'
+SEA_COLOR = '#92a9ce'
+HORIZON_COLOR = '#f5f1de'
+HORIZON_TOP_COLOR = '#d1aa9d'
