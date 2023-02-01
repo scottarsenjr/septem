@@ -3,7 +3,9 @@ from pygame.math import Vector2 as vector
 from pygame.mouse import get_pressed as mouse_buttons
 from pygame.mouse import get_pos as mouse_pos
 from pygame.image import load
+
 from settings import *
+from support import *
 
 from menu import Menu
 
@@ -81,16 +83,36 @@ class Editor:
     def imports(self):
         self.water_bottom = load('graphics/terrain/water/water_bottom.png')
 
+        # animations
+        self.animations = {}
+        for key, value in EDITOR_DATA.items():
+            if value['graphics']:
+                graphics = import_folder(value['graphics'])
+                self.animations[key] = {
+                    'frame index': 0,
+                    'frames': graphics,
+                    'length': len(graphics)
+                }
+
+    def animation_update(self, dt):
+        for value in self.animations.values():
+            value['frame index'] += ANIMATION_SPEED * dt
+            if value['frame index'] >= value['length']:
+                value['frame index'] = 0
+
     # input
     def event_loop(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+
             self.pan_input(event)
             self.selection_hotkeys(event)
             self.menu_click(event)
+
             self.canvas_add()
+            self.canvas_remove()
 
     def pan_input(self, event):
 
@@ -139,6 +161,18 @@ class Editor:
                 self.check_neighbors(current_cell)
                 self.last_selected_cell = current_cell
 
+    def canvas_remove(self):
+        if mouse_buttons()[2] and not self.menu.rect.collidepoint(mouse_pos()):
+
+            if self.canvas_data:
+                current_cell = self.get_current_cell()
+                if current_cell in self.canvas_data:
+                    self.canvas_data[current_cell].remove_id(self.selection_index)
+
+                    if self.canvas_data[current_cell].is_empty:
+                        del self.canvas_data[current_cell]
+                    self.check_neighbors(current_cell)
+
     # drawing
     def draw_tile_lines(self):
         cols = WINDOW_WIDTH // TILE_SIZE
@@ -169,9 +203,10 @@ class Editor:
                 if tile.water_on_top:
                     self.display_surface.blit(self.water_bottom, pos)
                 else:
-                    test_surf = pygame.Surface((TILE_SIZE, TILE_SIZE))
-                    test_surf.fill('red')
-                    self.display_surface.blit(test_surf, pos)
+                    frames = self.animations[3]['frames']
+                    index = int(self.animations[3]['frame index'])
+                    surf = frames[index]
+                    self.display_surface.blit(surf, pos)
 
             if tile.has_terrain:
                 terrain_string = ''.join(tile.terrain_neighbors)
@@ -180,19 +215,26 @@ class Editor:
 
             # coins
             if tile.coin:
-                test_surf = pygame.Surface((TILE_SIZE, TILE_SIZE))
-                test_surf.fill('yellow')
-                self.display_surface.blit(test_surf, pos)
+                frames = self.animations[tile.coin]['frames']
+                index = int(self.animations[tile.coin]['frame index'])
+                surf = frames[index]
+                rect = surf.get_rect(center=(pos[0] + TILE_SIZE // 2, pos[1] + TILE_SIZE // 2))
+                self.display_surface.blit(surf, rect)
 
             # enemies
             if tile.enemy:
-                test_surf = pygame.Surface((TILE_SIZE, TILE_SIZE))
-                test_surf.fill('red')
-                self.display_surface.blit(test_surf, pos)
+                frames = self.animations[tile.enemy]['frames']
+                index = int(self.animations[tile.enemy]['frame index'])
+                surf = frames[index]
+                rect = surf.get_rect(midbottom=(pos[0] + TILE_SIZE // 2, pos[1] + TILE_SIZE))
+                self.display_surface.blit(surf, rect)
 
     # update
     def run(self, dt):
         self.event_loop()
+
+        # updating
+        self.animation_update(dt)
 
         # drawing
         self.display_surface.fill('gray')
@@ -223,6 +265,7 @@ class CanvasTile:
         self.objects = []
 
         self.add_id(tile_id)
+        self.is_empty = False
 
     def add_id(self, tile_id):
         options = {key: value['style'] for key, value in EDITOR_DATA.items()}
@@ -234,3 +277,19 @@ class CanvasTile:
             self.coin = tile_id
         if options[tile_id] == 'enemy':
             self.enemy = tile_id
+
+    def remove_id(self, tile_id):
+        options = {key: value['style'] for key, value in EDITOR_DATA.items()}
+        if options[tile_id] == 'terrain':
+            self.has_terrain = False
+        if options[tile_id] == 'water':
+            self.has_water = False
+        if options[tile_id] == 'coin':
+            self.coin = None
+        if options[tile_id] == 'enemy':
+            self.enemy = None
+        self.check_content()
+
+    def check_content(self):
+        if not self.has_terrain and not self.has_water and not self.coin and not self.enemy:
+            self.is_empty = True
