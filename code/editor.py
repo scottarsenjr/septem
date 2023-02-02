@@ -469,6 +469,11 @@ class Editor:
             pos = [randint(0, WINDOW_WIDTH), randint(0, WINDOW_HEIGHT)]
             self.current_clouds.append({'surf': surf, 'pos': pos, 'speed': randint(20, 50)})
 
+    def draw_info(self):
+        f1 = pygame.font.Font(None, 24)
+        text1 = f1.render('Press LMB to change', 1, (255, 255, 255))
+        self.display_surface.blit(text1, (1100, 500))
+
     # update
     def run(self, dt):
         self.event_loop()
@@ -483,6 +488,7 @@ class Editor:
         self.display_sky(dt)
         self.draw_level()
         self.draw_tile_lines()
+        self.draw_info()
         # pygame.draw.circle(self.display_surface, 'red', self.origin, 10)
         self.preview()
         self.menu.display(self.selection_index)
