@@ -18,7 +18,7 @@ class Main:
         self.clock = pygame.time.Clock()
         self.imports()
 
-        self.editor_active = True
+        self.is_editor = True
         self.transition = Transition(self.toggle)
         self.editor = Editor(self.land_tiles, self.switch)
 
@@ -49,37 +49,55 @@ class Main:
                       list(walk('graphics/enemies/tooth'))[0][1]}
         self.shell = {folder: import_folder(f'graphics/enemies/shell_left/{folder}') for folder in
                       list(walk('graphics/enemies/shell_left/'))[0][1]}
+        self.pearl = load('graphics/enemies/pearl/pearl.png').convert_alpha()
 
         # player
         self.player_graphics = {folder: import_folder(f'graphics/player/{folder}') for folder in
                                 list(walk('graphics/player/'))[0][1]}
 
+        # clouds
+        self.clouds = import_folder('graphics/clouds')
+
+        # sounds
+        self.level_sounds = {
+            'coin': pygame.mixer.Sound('audio/coin.wav'),
+            'hit': pygame.mixer.Sound('audio/hit.wav'),
+            'jump': pygame.mixer.Sound('audio/jump.wav'),
+            'music': pygame.mixer.Sound('audio/SuperHero.mp3'),
+        }
+
     def toggle(self):
-        self.editor_active = not self.editor_active
+        self.is_editor = not self.is_editor
+        if self.is_editor:
+            self.editor.editor_music.play()
 
     def switch(self, grid=None):
         self.transition.active = True
         if grid:
-            self.level = Level(grid, self.switch, {
-                'land': self.land_tiles,
-                'water bottom': self.water_bottom,
-                'water top': self.water_top_animation,
-                'gold': self.gold,
-                'silver': self.silver,
-                'diamond': self.diamond,
-                'particle': self.particle,
-                'palms': self.palms,
-                'spikes': self.spikes,
-                'tooth': self.tooth,
-                'shell': self.shell,
-                'player': self.player_graphics
-            })
+            self.level = Level(
+                grid,
+                self.switch, {
+                    'land': self.land_tiles,
+                    'water bottom': self.water_bottom,
+                    'water top': self.water_top_animation,
+                    'gold': self.gold,
+                    'silver': self.silver,
+                    'diamond': self.diamond,
+                    'particle': self.particle,
+                    'palms': self.palms,
+                    'spikes': self.spikes,
+                    'tooth': self.tooth,
+                    'shell': self.shell,
+                    'player': self.player_graphics,
+                    'pearl': self.pearl,
+                    'clouds': self.clouds},
+                self.level_sounds)
 
     def run(self):
         while True:
             dt = self.clock.tick() / 1000
 
-            if self.editor_active:
+            if self.is_editor:
                 self.editor.run(dt)
             else:
                 self.level.run(dt)

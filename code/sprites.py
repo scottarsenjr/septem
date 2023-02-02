@@ -2,6 +2,10 @@ import pygame
 from pygame.math import Vector2 as vector
 
 from settings import *
+from timer import Timer
+
+from editor import Editor
+from random import choice, randint
 
 
 class Generic(pygame.sprite.Sprite):
@@ -16,6 +20,22 @@ class Block(Generic):
     def __init__(self, pos, size, group):
         surf = pygame.Surface(size)
         super().__init__(pos, surf, group)
+
+
+class Cloud(Generic):
+    def __init__(self, pos, surf, group, left_limit):
+        super().__init__(pos, surf, group, LEVEL_LAYERS['clouds'])
+        self.left_limit = left_limit
+
+        # movement
+        self.pos = vector(self.rect.topleft)
+        self.speed = randint(20, 30)
+
+    def update(self, dt):
+        self.pos.x -= self.speed * dt
+        self.rect.x = round(self.pos.x)
+        if self.rect.x <= self.left_limit:
+            self.kill()
 
 
 # simple animated objects
@@ -58,20 +78,72 @@ class Coin(Animated):
 class Spikes(Generic):
     def __init__(self, surf, pos, group):
         super().__init__(pos, surf, group)
+        self.mask = pygame.mask.from_surface(self.image)
 
 
 class Tooth(Generic):
-    def __init__(self, assets, pos, group):
+    def __init__(self, assets, pos, group, collision_sprites):
+
+        # general setup
         self.animation_frames = assets
         self.frame_index = 0
         self.orientation = 'right'
         surf = self.animation_frames[f'run_{self.orientation}'][self.frame_index]
         super().__init__(pos, surf, group)
         self.rect.bottom = self.rect.top + TILE_SIZE
+        self.mask = pygame.mask.from_surface(self.image)
+
+        # movement
+        self.direction = vector(choice((1, -1)), 0)
+        self.orientation = 'left' if self.direction.x < 0 else 'right'
+        self.pos = vector(self.rect.topleft)
+        self.speed = 120
+        self.collision_sprites = collision_sprites
+
+        # destory tooth at the beginning if he is not on a floor
+        if not [sprite for sprite in collision_sprites if
+                sprite.rect.collidepoint(self.rect.midbottom + vector(0, 10))]:
+            self.kill()
+
+    def animate(self, dt):
+        current_animation = self.animation_frames[f'run_{self.orientation}']
+        self.frame_index += ANIMATION_SPEED * dt
+        self.frame_index = 0 if self.frame_index >= len(current_animation) else self.frame_index
+        self.image = current_animation[int(self.frame_index)]
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def move(self, dt):
+        right_gap = self.rect.bottomright + vector(1, 1)
+        right_block = self.rect.midright + vector(1, 0)
+        left_gap = self.rect.bottomleft + vector(-1, 1)
+        left_block = self.rect.midleft + vector(-1, 0)
+
+        if self.direction.x > 0:  # moving right
+            # 1. no floor collision
+            floor_sprites = [sprite for sprite in self.collision_sprites if sprite.rect.collidepoint(right_gap)]
+            # 2. wall collision
+            wall_sprites = [sprite for sprite in self.collision_sprites if sprite.rect.collidepoint(right_block)]
+            if wall_sprites or not floor_sprites:
+                self.direction.x *= -1
+                self.orientation = 'left'
+
+        # exercise
+        if self.direction.x < 0:
+            if not [sprite for sprite in self.collision_sprites if sprite.rect.collidepoint(left_gap)] \
+                    or [sprite for sprite in self.collision_sprites if sprite.rect.collidepoint(left_block)]:
+                self.direction.x *= -1
+                self.orientation = 'right'
+
+        self.pos.x += self.direction.x * self.speed * dt
+        self.rect.x = round(self.pos.x)
+
+    def update(self, dt):
+        self.animate(dt)
+        self.move(dt)
 
 
 class Shell(Generic):
-    def __init__(self, orientation, assets, pos, group):
+    def __init__(self, orientation, assets, pos, group, pearl_surf, damage_sprites):
         self.orientation = orientation
         self.animation_frames = assets.copy()
         if orientation == 'right':
@@ -83,17 +155,88 @@ class Shell(Generic):
         super().__init__(pos, self.animation_frames[self.status][self.frame_index], group)
         self.rect.bottom = self.rect.top + TILE_SIZE
 
+        # pearl
+        self.pearl_surf = pearl_surf
+        self.has_shot = False
+        self.attack_cooldown = Timer(2000)
+        self.damage_sprites = damage_sprites
+
+    def animate(self, dt):
+        current_animation = self.animation_frames[self.status]
+        self.frame_index += ANIMATION_SPEED * dt
+        if self.frame_index >= len(current_animation):
+            self.frame_index = 0
+            if self.has_shot:
+                self.attack_cooldown.activate()
+                self.has_shot = False
+        self.image = current_animation[int(self.frame_index)]
+
+        if int(self.frame_index) == 2 and self.status == 'attack' and not self.has_shot:
+            pearl_direction = vector(-1, 0) if self.orientation == 'left' else vector(1, 0)
+            offset = (pearl_direction * 50) + vector(0, -10) if self.orientation == 'left' else (pearl_direction * 20) + vector(0, -10)
+            Pearl(self.rect.center + offset, pearl_direction, self.pearl_surf, [self.groups()[0], self.damage_sprites])
+            self.has_shot = True
+
+    def get_status(self):
+        if vector(self.player.rect.center).distance_to(
+                vector(self.rect.center)) < 500 and not self.attack_cooldown.active:
+            self.status = 'attack'
+        else:
+            self.status = 'idle'
+
+    def update(self, dt):
+        self.get_status()
+        self.animate(dt)
+        self.attack_cooldown.update()
+
+
+class Pearl(Generic):
+    def __init__(self, pos, direction, surf, group):
+        super().__init__(pos, surf, group)
+        self.mask = pygame.mask.from_surface(self.image)
+
+        # movement
+        self.pos = vector(self.rect.topleft)
+        self.direction = direction
+        self.speed = 150
+
+        # self destruct
+        self.timer = Timer(6000)
+        self.timer.activate()
+
+    def update(self, dt):
+        # movement
+        self.pos.x += self.direction.x * self.speed * dt
+        self.rect.x = round(self.pos.x)
+
+        # timer
+        self.timer.update()
+        if not self.timer.active:
+            self.kill()
+
 
 class Player(Generic):
-    def __init__(self, pos, assets, group, collision_sprites):
+    def __init__(self, pos, assets, group, collision_sprites, jump_sound, switch):
+
+        self.switch = switch
+
+        # health
+        self.current_health = 200
+        self.max_health = 1000
+        self.health_bar_length = 400
+        self.health_ratio = self.max_health / self.health_bar_length
+        self.target_health = 500
+        self.health_change_speed = 5
 
         # animation
         self.animation_frames = assets
         self.frame_index = 0
+
         self.status = 'idle'
         self.orientation = 'right'
         surf = self.animation_frames[f'{self.status}_{self.orientation}'][self.frame_index]
         super().__init__(pos, surf, group)
+        self.mask = pygame.mask.from_surface(self.image)
 
         # movement
         self.direction = vector()
@@ -105,6 +248,32 @@ class Player(Generic):
         # collision
         self.collision_sprites = collision_sprites
         self.hitbox = self.rect.inflate(-50, 0)
+
+        # timer
+        self.invul_timer = Timer(200)
+
+        # sound
+        self.jump_sound = jump_sound
+        self.jump_sound.set_volume(0.2)
+
+    def get_health(self, amount):
+        if self.current_health < self.max_health:
+            self.current_health += amount
+        if self.current_health > self.max_health:
+            self.current_health = self.max_health
+
+    def damage(self):
+        if not self.invul_timer.active:
+            self.invul_timer.activate()
+            self.direction.y -= 1.5
+        if self.current_health > 0:
+            self.current_health -= 30
+        if self.current_health <= 0:
+            self.current_health = 0
+
+    def basic_health(self):
+        pygame.draw.rect(self.image, (255, 0, 0), (0, -20, self.current_health, 25))
+        print(self.current_health)
 
     def get_status(self):
         if self.direction.y < 0:
@@ -119,6 +288,12 @@ class Player(Generic):
         self.frame_index += ANIMATION_SPEED * dt
         self.frame_index = 0 if self.frame_index >= len(current_animation) else self.frame_index
         self.image = current_animation[int(self.frame_index)]
+        self.mask = pygame.mask.from_surface(self.image)
+
+        if self.invul_timer.active:
+            surf = self.mask.to_surface()
+            surf.set_colorkey('black')
+            self.image = surf
 
     def input(self):
         keys = pygame.key.get_pressed()
@@ -133,6 +308,7 @@ class Player(Generic):
 
         if keys[pygame.K_w] and self.on_floor:
             self.direction.y = -2
+            self.jump_sound.play()
 
     def move(self, dt):
 
@@ -175,6 +351,8 @@ class Player(Generic):
         self.apply_gravity(dt)
         self.move(dt)
         self.check_on_floor()
+        self.invul_timer.update()
+        self.basic_health()
 
         self.get_status()
         self.animate(dt)
