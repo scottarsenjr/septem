@@ -4,10 +4,6 @@ WINDOW_HEIGHT = 720
 TILE_SIZE = 64
 ANIMATION_SPEED = 8
 
-LINE_COLOR = 'gray'
-BTN_BG = '#33323d'
-BTN_LC = '#f5f1de'
-
 EDITOR_DATA = {
     0: {'style': 'player', 'type': 'object', 'menu': None, 'menu_surf': None, 'preview': None,
         'graphics': 'graphics/player/idle_right'},
@@ -77,3 +73,6 @@ SKY_COLOR = '#ddc6a1'
 SEA_COLOR = '#92a9ce'
 HORIZON_COLOR = '#f5f1de'
 HORIZON_TOP_COLOR = '#d1aa9d'
+LINE_COLOR = 'black'
+BUTTON_BG_COLOR = '#33323d'
+BUTTON_LINE_COLOR = '#f5f1de'

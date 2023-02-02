@@ -108,7 +108,8 @@ class Editor:
 
                     if neighbor_cell in self.canvas_data:
                         # water top neighbor
-                        if self.canvas_data[neighbor_cell].has_water and self.canvas_data[cell].has_water and name == 'A':
+                        if self.canvas_data[neighbor_cell].has_water and self.canvas_data[
+                            cell].has_water and name == 'A':
                             self.canvas_data[cell].water_on_top = True
 
                         # terrain neighbors
@@ -274,7 +275,8 @@ class Editor:
                     self.last_selected_cell = current_cell
             else:  # object
                 if not self.object_timer.active:
-                    groups = [self.canvas_objects, self.background] if EDITOR_DATA[self.selection_index]['style'] == 'palm_bg' else [
+                    groups = [self.canvas_objects, self.background] if EDITOR_DATA[self.selection_index][
+                                                                           'style'] == 'palm_bg' else [
                         self.canvas_objects, self.foreground]
                     CanvasObject(
                         pos=mouse_pos(),
@@ -502,25 +504,30 @@ class CanvasTile:
 
     def add_id(self, tile_id, offset=vector()):
         options = {key: value['style'] for key, value in EDITOR_DATA.items()}
-        if options[tile_id] == 'terrain':
-            self.has_terrain = True
-        if options[tile_id] == 'water':
-            self.has_water = True
-        if options[tile_id] == 'coin':
-            self.coin = tile_id
-        if options[tile_id] == 'enemy':
-            self.enemy = tile_id
+        match options[tile_id]:
+            case 'terrain':
+                self.has_terrain = True
+            case 'water':
+                self.has_water = True
+            case 'coin':
+                self.coin = tile_id
+            case 'enemy':
+                self.enemy = tile_id
+            case _:  # objects
+                if (tile_id, offset) not in self.objects:
+                    self.objects.append((tile_id, offset))
 
     def remove_id(self, tile_id):
         options = {key: value['style'] for key, value in EDITOR_DATA.items()}
-        if options[tile_id] == 'terrain':
-            self.has_terrain = False
-        if options[tile_id] == 'water':
-            self.has_water = False
-        if options[tile_id] == 'coin':
-            self.coin = None
-        if options[tile_id] == 'enemy':
-            self.enemy = None
+        match options[tile_id]:
+            case 'terrain':
+                self.has_terrain = False
+            case 'water':
+                self.has_water = False
+            case 'coin':
+                self.coin = None
+            case 'enemy':
+                self.enemy = None
         self.check_content()
 
     def check_content(self):

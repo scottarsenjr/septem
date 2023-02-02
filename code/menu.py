@@ -55,13 +55,13 @@ class Menu:
 
     def highlight_indicator(self, index):
         if EDITOR_DATA[index]['menu'] == 'terrain':
-            pygame.draw.rect(self.display_surface, BTN_LC, self.tile_button_rect.inflate(4, 4), 5, 4)
+            pygame.draw.rect(self.display_surface, BUTTON_LINE_COLOR, self.tile_button_rect.inflate(4, 4), 5, 4)
         if EDITOR_DATA[index]['menu'] == 'coin':
-            pygame.draw.rect(self.display_surface, BTN_LC, self.coin_button_rect.inflate(4, 4), 5, 4)
+            pygame.draw.rect(self.display_surface, BUTTON_LINE_COLOR, self.coin_button_rect.inflate(4, 4), 5, 4)
         if EDITOR_DATA[index]['menu'] == 'enemy':
-            pygame.draw.rect(self.display_surface, BTN_LC, self.enemy_button_rect.inflate(4, 4), 5, 4)
+            pygame.draw.rect(self.display_surface, BUTTON_LINE_COLOR, self.enemy_button_rect.inflate(4, 4), 5, 4)
         if EDITOR_DATA[index]['menu'] in ('palm bg', 'palm fg'):
-            pygame.draw.rect(self.display_surface, BTN_LC, self.palm_button_rect.inflate(4, 4), 5, 4)
+            pygame.draw.rect(self.display_surface, BUTTON_LINE_COLOR, self.palm_button_rect.inflate(4, 4), 5, 4)
 
     def display(self, index):
         self.buttons.update()
@@ -88,7 +88,7 @@ class Button(pygame.sprite.Sprite):
         self.index = 0 if self.index >= len(self.items['main' if self.main_active else 'alt']) else self.index
 
     def update(self):
-        self.image.fill(BTN_BG)
+        self.image.fill(BUTTON_BG_COLOR)
         surf = self.items['main' if self.main_active else 'alt'][self.index][1]
         rect = surf.get_rect(center=(self.rect.width / 2, self.rect.height / 2))
         self.image.blit(surf, rect)
