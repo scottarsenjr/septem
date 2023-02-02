@@ -26,6 +26,7 @@ class Main:
         surf = load('graphics/mouse/mouse.png').convert_alpha()
         cursor = pygame.cursors.Cursor((0, 0), surf)
         pygame.mouse.set_cursor(cursor)
+        pygame.display.set_caption('SEPTEM - BETA TEST')
 
     def imports(self):
         # terrain
