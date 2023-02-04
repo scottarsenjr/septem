@@ -25,7 +25,7 @@ class Level:
 
         # level limits
         self.level_limits = {
-            'left': -WINDOW_WIDTH,
+            'left': -W_WIDTH,
             'right': sorted(list(grid['terrain'].keys()), key=lambda pos: pos[0])[-1][0] + 500
         }
 
@@ -179,26 +179,26 @@ class CameraGroup(pygame.sprite.Group):
     def draw_horizon(self):
         horizon_pos = self.horizon_y - self.offset.y
 
-        if horizon_pos < WINDOW_HEIGHT:
-            sea_rect = pygame.Rect(0, horizon_pos, WINDOW_WIDTH, WINDOW_HEIGHT - horizon_pos)
+        if horizon_pos < W_HEIGHT:
+            sea_rect = pygame.Rect(0, horizon_pos, W_WIDTH, W_HEIGHT - horizon_pos)
             pygame.draw.rect(self.display_surface, SEA_COLOR, sea_rect)
 
             # horizon line
             # 3 extra rectangles
-            horizon_rect1 = pygame.Rect(0, horizon_pos - 10, WINDOW_WIDTH, 10)
-            horizon_rect2 = pygame.Rect(0, horizon_pos - 16, WINDOW_WIDTH, 4)
-            horizon_rect3 = pygame.Rect(0, horizon_pos - 20, WINDOW_WIDTH, 2)
+            horizon_rect1 = pygame.Rect(0, horizon_pos - 10, W_WIDTH, 10)
+            horizon_rect2 = pygame.Rect(0, horizon_pos - 16, W_WIDTH, 4)
+            horizon_rect3 = pygame.Rect(0, horizon_pos - 20, W_WIDTH, 2)
             pygame.draw.rect(self.display_surface, HORIZON_TOP_COLOR, horizon_rect1)
             pygame.draw.rect(self.display_surface, HORIZON_TOP_COLOR, horizon_rect2)
             pygame.draw.rect(self.display_surface, HORIZON_TOP_COLOR, horizon_rect3)
-            pygame.draw.line(self.display_surface, HORIZON_COLOR, (0, horizon_pos), (WINDOW_WIDTH, horizon_pos), 3)
+            pygame.draw.line(self.display_surface, HORIZON_COLOR, (0, horizon_pos), (W_WIDTH, horizon_pos), 3)
 
         if horizon_pos < 0:
             self.display_surface.fill(SEA_COLOR)
 
     def custom_draw(self, player):
-        self.offset.x = player.rect.centerx - WINDOW_WIDTH / 2
-        self.offset.y = player.rect.centery - WINDOW_HEIGHT / 2
+        self.offset.x = player.rect.centerx - W_WIDTH / 2
+        self.offset.y = player.rect.centery - W_HEIGHT / 2
 
         for sprite in self:
             if sprite.z == LEVEL_LAYERS['clouds']:

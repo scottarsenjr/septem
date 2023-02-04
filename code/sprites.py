@@ -90,7 +90,7 @@ class Tooth(Global):
         self.orientation = 'right'
         surf = self.animation_frames[f'run_{self.orientation}'][self.frame_index]
         super().__init__(pos, surf, group)
-        self.rect.bottom = self.rect.top + TILE_SIZE
+        self.rect.bottom = self.rect.top + TILE
         self.mask = pygame.mask.from_surface(self.image)
 
         # movement
@@ -153,7 +153,7 @@ class SeaShell(Global):
         self.frame_index = 0
         self.status = 'idle'
         super().__init__(pos, self.animation_frames[self.status][self.frame_index], group)
-        self.rect.bottom = self.rect.top + TILE_SIZE
+        self.rect.bottom = self.rect.top + TILE
 
         # pearl
         self.pearl_surf = pearl_surf

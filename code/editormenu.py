@@ -23,7 +23,7 @@ class EditorMenu:
         # menu area
         size = 180
         margin = 6
-        topleft = (WINDOW_WIDTH - size - margin, WINDOW_HEIGHT - size - margin)
+        topleft = (W_WIDTH - size - margin, W_HEIGHT - size - margin)
         self.rect = pygame.Rect(topleft, (size, size))
 
         # button areas

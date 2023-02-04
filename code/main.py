@@ -14,7 +14,7 @@ from os import walk
 class Main:
     def __init__(self):
         pygame.init()
-        self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+        self.display_surface = pygame.display.set_mode((W_WIDTH, W_HEIGHT))
         self.clock = pygame.time.Clock()
         self.imports()
 
@@ -114,7 +114,7 @@ class Transition:
 
         self.border_width = 0
         self.direction = 1
-        self.center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2)
+        self.center = (W_WIDTH / 2, W_HEIGHT / 2)
         self.radius = vector(self.center).magnitude()
         self.threshold = self.radius + 100
 

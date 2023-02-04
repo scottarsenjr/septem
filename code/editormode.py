@@ -38,7 +38,7 @@ class EditorMode:
         self.pan_offset = vector()
 
         # support lines
-        self.support_line_surf = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+        self.support_line_surf = pygame.Surface((W_WIDTH, W_HEIGHT))
         self.support_line_surf.set_colorkey('green')
         self.support_line_surf.set_alpha(30)
 
@@ -58,7 +58,7 @@ class EditorMode:
 
         # Player
         CanvasObj(
-            pos=(200, WINDOW_HEIGHT / 2),
+            pos=(200, W_HEIGHT / 2),
             frames=self.animations[0]['frames'],
             tile_id=0,
             origin=self.origin,
@@ -66,7 +66,7 @@ class EditorMode:
 
         # sky
         self.sky_handle = CanvasObj(
-            pos=(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2),
+            pos=(W_WIDTH / 2, W_HEIGHT / 2),
             frames=[self.sky_handle_surf],
             tile_id=1,
             origin=self.origin,
@@ -83,14 +83,14 @@ class EditorMode:
             obj.distance_to_origin) - self.origin
 
         if distance_to_origin.x > 0:
-            col = int(distance_to_origin.x / TILE_SIZE)
+            col = int(distance_to_origin.x / TILE)
         else:
-            col = int(distance_to_origin.x / TILE_SIZE) - 1
+            col = int(distance_to_origin.x / TILE) - 1
 
         if distance_to_origin.y > 0:
-            row = int(distance_to_origin.y / TILE_SIZE)
+            row = int(distance_to_origin.y / TILE)
         else:
-            row = int(distance_to_origin.y / TILE_SIZE) - 1
+            row = int(distance_to_origin.y / TILE) - 1
 
         return col, row
 
@@ -159,7 +159,7 @@ class EditorMode:
 
         for obj in self.canvas_objects:
             current_cell = self.get_current_cell(obj)
-            offset = vector(obj.distance_to_origin) - (vector(current_cell) * TILE_SIZE)
+            offset = vector(obj.distance_to_origin) - (vector(current_cell) * TILE)
 
             if current_cell in self.canvas_data:  # tile exists already
                 self.canvas_data[current_cell].add_id(obj.tile_id, offset)
@@ -184,8 +184,8 @@ class EditorMode:
         for tile_pos, tile in self.canvas_data.items():
             row_adjusted = tile_pos[1] - top
             col_adjusted = tile_pos[0] - left
-            x = col_adjusted * TILE_SIZE
-            y = row_adjusted * TILE_SIZE
+            x = col_adjusted * TILE
+            y = row_adjusted * TILE
 
             if tile.has_water:
                 layers['water'][(x, y)] = tile.get_water()
@@ -194,7 +194,7 @@ class EditorMode:
                 layers['terrain'][(x, y)] = tile.get_terrain() if tile.get_terrain() in self.land_tiles else 'X'
 
             if tile.coin:
-                layers['coins'][(x + TILE_SIZE // 2, y + TILE_SIZE // 2)] = tile.coin
+                layers['coins'][(x + TILE // 2, y + TILE // 2)] = tile.coin
 
             if tile.enemy:
                 layers['enemies'][x, y] = tile.enemy
@@ -329,29 +329,29 @@ class EditorMode:
 
     # drawing
     def draw_grid(self):
-        cols = WINDOW_WIDTH // TILE_SIZE
-        rows = WINDOW_HEIGHT // TILE_SIZE
+        cols = W_WIDTH // TILE
+        rows = W_HEIGHT // TILE
 
         origin_offset = vector(
-            x=self.origin.x - int(self.origin.x / TILE_SIZE) * TILE_SIZE,
-            y=self.origin.y - int(self.origin.y / TILE_SIZE) * TILE_SIZE)
+            x=self.origin.x - int(self.origin.x / TILE) * TILE,
+            y=self.origin.y - int(self.origin.y / TILE) * TILE)
 
         self.support_line_surf.fill('green')
 
         for col in range(cols + 1):
-            x = origin_offset.x + col * TILE_SIZE
-            pygame.draw.line(self.support_line_surf, LINE_COLOR, (x, 0), (x, WINDOW_HEIGHT))
+            x = origin_offset.x + col * TILE
+            pygame.draw.line(self.support_line_surf, LINE_COLOR, (x, 0), (x, W_HEIGHT))
 
         for row in range(rows + 1):
-            y = origin_offset.y + row * TILE_SIZE
-            pygame.draw.line(self.support_line_surf, LINE_COLOR, (0, y), (WINDOW_WIDTH, y))
+            y = origin_offset.y + row * TILE
+            pygame.draw.line(self.support_line_surf, LINE_COLOR, (0, y), (W_WIDTH, y))
 
         self.display_surface.blit(self.support_line_surf, (0, 0))
 
     def draw_level(self):
         self.background.draw(self.display_surface)
         for cell_pos, tile in self.canvas_data.items():
-            pos = self.origin + vector(cell_pos) * TILE_SIZE
+            pos = self.origin + vector(cell_pos) * TILE
 
             # water
             if tile.has_water:
@@ -373,7 +373,7 @@ class EditorMode:
                 frames = self.animations[tile.coin]['frames']
                 index = int(self.animations[tile.coin]['frame index'])
                 surf = frames[index]
-                rect = surf.get_rect(center=(pos[0] + TILE_SIZE // 2, pos[1] + TILE_SIZE // 2))
+                rect = surf.get_rect(center=(pos[0] + TILE // 2, pos[1] + TILE // 2))
                 self.display_surface.blit(surf, rect)
 
             # enemies
@@ -381,7 +381,7 @@ class EditorMode:
                 frames = self.animations[tile.enemy]['frames']
                 index = int(self.animations[tile.enemy]['frame index'])
                 surf = frames[index]
-                rect = surf.get_rect(midbottom=(pos[0] + TILE_SIZE // 2, pos[1] + TILE_SIZE))
+                rect = surf.get_rect(midbottom=(pos[0] + TILE // 2, pos[1] + TILE))
                 self.display_surface.blit(surf, rect)
         self.foreground.draw(self.display_surface)
 
@@ -416,7 +416,7 @@ class EditorMode:
                 # tile
                 if type_dict[self.selection_index] == 'tile':
                     current_cell = self.get_current_cell()
-                    rect = surf.get_rect(topleft=self.origin + vector(current_cell) * TILE_SIZE)
+                    rect = surf.get_rect(topleft=self.origin + vector(current_cell) * TILE)
                 # object
                 else:
                     rect = surf.get_rect(center=mouse_pos())
@@ -428,9 +428,9 @@ class EditorMode:
 
         # horizon lines
         if y > 0:
-            horizon_rect1 = pygame.Rect(0, y - 10, WINDOW_WIDTH, 10)
-            horizon_rect2 = pygame.Rect(0, y - 16, WINDOW_WIDTH, 4)
-            horizon_rect3 = pygame.Rect(0, y - 20, WINDOW_WIDTH, 2)
+            horizon_rect1 = pygame.Rect(0, y - 10, W_WIDTH, 10)
+            horizon_rect2 = pygame.Rect(0, y - 16, W_WIDTH, 4)
+            horizon_rect3 = pygame.Rect(0, y - 20, W_WIDTH, 2)
             pygame.draw.rect(self.display_surface, HORIZON_TOP_COLOR, horizon_rect1)
             pygame.draw.rect(self.display_surface, HORIZON_TOP_COLOR, horizon_rect2)
             pygame.draw.rect(self.display_surface, HORIZON_TOP_COLOR, horizon_rect3)
@@ -438,10 +438,10 @@ class EditorMode:
             self.display_clouds(dt, y)
 
         # sea
-        if 0 < y < WINDOW_HEIGHT:
-            sea_rect = pygame.Rect(0, y, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if 0 < y < W_HEIGHT:
+            sea_rect = pygame.Rect(0, y, W_WIDTH, W_HEIGHT)
             pygame.draw.rect(self.display_surface, SEA_COLOR, sea_rect)
-            pygame.draw.line(self.display_surface, HORIZON_COLOR, (0, y), (WINDOW_WIDTH, y), 3)
+            pygame.draw.line(self.display_surface, HORIZON_COLOR, (0, y), (W_WIDTH, y), 3)
         if y < 0:
             self.display_surface.fill(SEA_COLOR)
 
@@ -457,7 +457,7 @@ class EditorMode:
             surf = choice(self.cloud_surf)
             surf = pygame.transform.scale2x(surf) if randint(0, 4) < 2 else surf
 
-            pos = [WINDOW_WIDTH + randint(50, 100), randint(0, WINDOW_HEIGHT)]
+            pos = [W_WIDTH + randint(50, 100), randint(0, W_HEIGHT)]
             self.current_clouds.append({'surf': surf, 'pos': pos, 'speed': randint(20, 50)})
 
             # remove clouds
@@ -466,7 +466,7 @@ class EditorMode:
     def startup_clouds(self):
         for i in range(20):
             surf = pygame.transform.scale2x(choice(self.cloud_surf)) if randint(0, 4) < 2 else choice(self.cloud_surf)
-            pos = [randint(0, WINDOW_WIDTH), randint(0, WINDOW_HEIGHT)]
+            pos = [randint(0, W_WIDTH), randint(0, W_HEIGHT)]
             self.current_clouds.append({'surf': surf, 'pos': pos, 'speed': randint(20, 50)})
 
     def draw_info(self):
