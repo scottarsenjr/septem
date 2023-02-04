@@ -7,13 +7,13 @@ from pygame.image import load
 from settings import *
 from support import *
 
-from menu import Menu
+from editormenu import EditorMenu
 from timer import Timer
 
 from random import choice, randint
 
 
-class Editor:
+class EditorMode:
     def __init__(self, land_tiles, switch):
 
         # main setup
@@ -47,7 +47,7 @@ class Editor:
         self.last_selected_cell = None
 
         # menu
-        self.menu = Menu()
+        self.menu = EditorMenu()
 
         # objects
         self.canvas_objects = pygame.sprite.Group()
@@ -57,7 +57,7 @@ class Editor:
         self.object_timer = Timer(400)
 
         # Player
-        CanvasObject(
+        CanvasObj(
             pos=(200, WINDOW_HEIGHT / 2),
             frames=self.animations[0]['frames'],
             tile_id=0,
@@ -65,7 +65,7 @@ class Editor:
             group=[self.canvas_objects, self.foreground])
 
         # sky
-        self.sky_handle = CanvasObject(
+        self.sky_handle = CanvasObj(
             pos=(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2),
             frames=[self.sky_handle_surf],
             tile_id=1,
@@ -222,7 +222,7 @@ class Editor:
             self.selection_hotkeys(event)
             self.menu_click(event)
 
-            self.object_drag(event)
+            self.object_dragging(event)
 
             self.canvas_add()
             self.canvas_remove()
@@ -287,7 +287,7 @@ class Editor:
                     groups = [self.canvas_objects, self.background] if EDITOR_DATA[self.selection_index][
                                                                            'style'] == 'palm_bg' else [
                         self.canvas_objects, self.foreground]
-                    CanvasObject(
+                    CanvasObj(
                         pos=mouse_pos(),
                         frames=self.animations[self.selection_index]['frames'],
                         tile_id=self.selection_index,
@@ -314,7 +314,7 @@ class Editor:
                         del self.canvas_data[current_cell]
                     self.check_neighbors(current_cell)
 
-    def object_drag(self, event):
+    def object_dragging(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and mouse_buttons()[0]:
             for sprite in self.canvas_objects:
                 if sprite.rect.collidepoint(event.pos):
@@ -328,7 +328,7 @@ class Editor:
                     self.object_drag_active = False
 
     # drawing
-    def draw_tile_lines(self):
+    def draw_grid(self):
         cols = WINDOW_WIDTH // TILE_SIZE
         rows = WINDOW_HEIGHT // TILE_SIZE
 
@@ -487,7 +487,7 @@ class Editor:
         self.display_surface.fill('gray')
         self.display_sky(dt)
         self.draw_level()
-        self.draw_tile_lines()
+        self.draw_grid()
         self.draw_info()
         # pygame.draw.circle(self.display_surface, 'red', self.origin, 10)
         self.preview()
@@ -556,7 +556,7 @@ class CanvasTile:
         return ''.join(self.terrain_neighbors)
 
 
-class CanvasObject(pygame.sprite.Sprite):
+class CanvasObj(pygame.sprite.Sprite):
     def __init__(self, pos, frames, tile_id, origin, group):
         super().__init__(group)
         self.tile_id = tile_id

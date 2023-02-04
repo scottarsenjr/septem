@@ -5,7 +5,7 @@ from support import *
 
 from pygame.image import load
 
-from editor import Editor
+from editormode import EditorMode
 from level import Level
 
 from os import walk
@@ -20,7 +20,7 @@ class Main:
 
         self.is_editor = True
         self.transition = Transition(self.toggle)
-        self.editor = Editor(self.land_tiles, self.switch)
+        self.editor = EditorMode(self.land_tiles, self.switch)
 
         # cursor
         surf = load('graphics/mouse/mouse.png').convert_alpha()

@@ -4,7 +4,7 @@ from pygame.math import Vector2 as vector
 from settings import *
 from support import *
 
-from sprites import Generic, Block, Animated, Particle, Coin, Player, Spikes, Tooth, Shell, Cloud
+from sprites import Global, Block, Animations, Particle, Coins, Player, Spears, Tooth, SeaShell, Clouds
 
 from random import choice, randint
 
@@ -51,12 +51,12 @@ class Level:
         for layer_name, layer in grid.items():
             for pos, data in layer.items():
                 if layer_name == 'terrain':
-                    Generic(pos, asset_dict['land'][data], [self.all_sprites, self.collision_sprites])
+                    Global(pos, asset_dict['land'][data], [self.all_sprites, self.collision_sprites])
                 if layer_name == 'water':
                     if data == 'top':
-                        Animated(asset_dict['water top'], pos, self.all_sprites, LEVEL_LAYERS['water'])
+                        Animations(asset_dict['water top'], pos, self.all_sprites, LEVEL_LAYERS['water'])
                     else:
-                        Generic(pos, asset_dict['water bottom'], self.all_sprites, LEVEL_LAYERS['water'])
+                        Global(pos, asset_dict['water bottom'], self.all_sprites, LEVEL_LAYERS['water'])
 
                 match data:
                     case 0:
@@ -67,28 +67,28 @@ class Level:
                         self.all_sprites.horizon_y = pos[1]
                     # coins
                     case 4:
-                        Coin('gold', asset_dict['gold'], pos, [self.all_sprites, self.coin_sprites])
+                        Coins('gold', asset_dict['gold'], pos, [self.all_sprites, self.coin_sprites])
                     case 5:
-                        Coin('silver', asset_dict['silver'], pos, [self.all_sprites, self.coin_sprites])
+                        Coins('silver', asset_dict['silver'], pos, [self.all_sprites, self.coin_sprites])
                     case 6:
-                        Coin('diamond', asset_dict['diamond'], pos, [self.all_sprites, self.coin_sprites])
+                        Coins('diamond', asset_dict['diamond'], pos, [self.all_sprites, self.coin_sprites])
 
                     # enemies
                     case 7:
-                        Spikes(asset_dict['spikes'], pos, [self.all_sprites, self.damage_sprites])
+                        Spears(asset_dict['spikes'], pos, [self.all_sprites, self.damage_sprites])
                     case 8:
                         Tooth(asset_dict['tooth'], pos, [self.all_sprites, self.damage_sprites], self.collision_sprites)
                     case 9:
-                        Shell(
-                            orientation='left',
+                        SeaShell(
+                            direction='left',
                             assets=asset_dict['shell'],
                             pos=pos,
                             group=[self.all_sprites, self.collision_sprites, self.shell_sprites],
                             pearl_surf=asset_dict['pearl'],
                             damage_sprites=self.damage_sprites)
                     case 10:
-                        Shell(
-                            orientation='right',
+                        SeaShell(
+                            direction='right',
                             assets=asset_dict['shell'],
                             pos=pos,
                             group=[self.all_sprites, self.collision_sprites, self.shell_sprites],
@@ -97,26 +97,26 @@ class Level:
 
                     # palm trees
                     case 11:
-                        Animated(asset_dict['palms']['small_fg'], pos, self.all_sprites)
+                        Animations(asset_dict['palms']['small_fg'], pos, self.all_sprites)
                         Block(pos, (76, 50), self.collision_sprites)
                     case 12:
-                        Animated(asset_dict['palms']['large_fg'], pos, self.all_sprites)
+                        Animations(asset_dict['palms']['large_fg'], pos, self.all_sprites)
                         Block(pos, (76, 50), self.collision_sprites)
                     case 13:
-                        Animated(asset_dict['palms']['left_fg'], pos, self.all_sprites)
+                        Animations(asset_dict['palms']['left_fg'], pos, self.all_sprites)
                         Block(pos, (76, 50), self.collision_sprites)
                     case 14:
-                        Animated(asset_dict['palms']['right_fg'], pos, self.all_sprites)
+                        Animations(asset_dict['palms']['right_fg'], pos, self.all_sprites)
                         Block(pos + vector(50, 0), (76, 50), self.collision_sprites)
 
                     case 15:
-                        Animated(asset_dict['palms']['small_bg'], pos, self.all_sprites, LEVEL_LAYERS['bg'])
+                        Animations(asset_dict['palms']['small_bg'], pos, self.all_sprites, LEVEL_LAYERS['bg'])
                     case 16:
-                        Animated(asset_dict['palms']['large_bg'], pos, self.all_sprites, LEVEL_LAYERS['bg'])
+                        Animations(asset_dict['palms']['large_bg'], pos, self.all_sprites, LEVEL_LAYERS['bg'])
                     case 17:
-                        Animated(asset_dict['palms']['left_bg'], pos, self.all_sprites, LEVEL_LAYERS['bg'])
+                        Animations(asset_dict['palms']['left_bg'], pos, self.all_sprites, LEVEL_LAYERS['bg'])
                     case 18:
-                        Animated(asset_dict['palms']['right_bg'], pos, self.all_sprites, LEVEL_LAYERS['bg'])
+                        Animations(asset_dict['palms']['right_bg'], pos, self.all_sprites, LEVEL_LAYERS['bg'])
 
         for sprite in self.shell_sprites:
             sprite.player = self.player
@@ -148,7 +148,7 @@ class Level:
                 surf = pygame.transform.scale2x(surf) if randint(0, 5) > 3 else surf
                 x = self.level_limits['right'] + randint(100, 300)
                 y = self.horizon_y - randint(-50, 600)
-                Cloud((x, y), surf, self.all_sprites, self.level_limits['left'])
+                Clouds((x, y), surf, self.all_sprites, self.level_limits['left'])
 
     def startup_clouds(self):
         for i in range(40):
@@ -156,7 +156,7 @@ class Level:
             surf = pygame.transform.scale2x(surf) if randint(0, 5) > 3 else surf
             x = randint(self.level_limits['left'], self.level_limits['right'])
             y = self.horizon_y - randint(-50, 600)
-            Cloud((x, y), surf, self.all_sprites, self.level_limits['left'])
+            Clouds((x, y), surf, self.all_sprites, self.level_limits['left'])
 
     def run(self, dt):
         # update

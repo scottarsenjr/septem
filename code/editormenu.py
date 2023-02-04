@@ -3,7 +3,7 @@ from settings import *
 from pygame.image import load
 
 
-class Menu:
+class EditorMenu:
     def __init__(self):
         self.display_surface = pygame.display.get_surface()
         self.create_data()
@@ -38,10 +38,10 @@ class Menu:
 
         # create the buttons
         self.buttons = pygame.sprite.Group()
-        Button(self.tile_button_rect, self.buttons, self.menu_surfs['terrain'])
-        Button(self.coin_button_rect, self.buttons, self.menu_surfs['coin'])
-        Button(self.enemy_button_rect, self.buttons, self.menu_surfs['enemy'])
-        Button(self.palm_button_rect, self.buttons, self.menu_surfs['palm fg'], self.menu_surfs['palm bg'])
+        ButtonClass(self.tile_button_rect, self.buttons, self.menu_surfs['terrain'])
+        ButtonClass(self.coin_button_rect, self.buttons, self.menu_surfs['coin'])
+        ButtonClass(self.enemy_button_rect, self.buttons, self.menu_surfs['enemy'])
+        ButtonClass(self.palm_button_rect, self.buttons, self.menu_surfs['palm fg'], self.menu_surfs['palm bg'])
 
     def click(self, mouse_pos, mouse_button):
         for sprite in self.buttons:
@@ -69,7 +69,7 @@ class Menu:
         self.highlight_indicator(index)
 
 
-class Button(pygame.sprite.Sprite):
+class ButtonClass(pygame.sprite.Sprite):
     def __init__(self, rect, group, items, items_alt=None):
         super().__init__(group)
         self.image = pygame.Surface(rect.size)

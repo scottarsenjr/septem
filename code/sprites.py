@@ -4,11 +4,11 @@ from pygame.math import Vector2 as vector
 from settings import *
 from timer import Timer
 
-from editor import Editor
+from editormode import EditorMode
 from random import choice, randint
 
 
-class Generic(pygame.sprite.Sprite):
+class Global(pygame.sprite.Sprite):
     def __init__(self, pos, surf, group, z=LEVEL_LAYERS['main']):
         super().__init__(group)
         self.image = surf
@@ -16,13 +16,13 @@ class Generic(pygame.sprite.Sprite):
         self.z = z
 
 
-class Block(Generic):
+class Block(Global):
     def __init__(self, pos, size, group):
         surf = pygame.Surface(size)
         super().__init__(pos, surf, group)
 
 
-class Cloud(Generic):
+class Clouds(Global):
     def __init__(self, pos, surf, group, left_limit):
         super().__init__(pos, surf, group, LEVEL_LAYERS['clouds'])
         self.left_limit = left_limit
@@ -39,49 +39,49 @@ class Cloud(Generic):
 
 
 # simple animated objects
-class Animated(Generic):
+class Animations(Global):
     def __init__(self, assets, pos, group, z=LEVEL_LAYERS['main']):
         self.animation_frames = assets
-        self.frame_index = 0
-        super().__init__(pos, self.animation_frames[self.frame_index], group, z)
+        self.f_index = 0
+        super().__init__(pos, self.animation_frames[self.f_index], group, z)
 
     def animate(self, dt):
-        self.frame_index += ANIMATION_SPEED * dt
-        self.frame_index = 0 if self.frame_index >= len(self.animation_frames) else self.frame_index
-        self.image = self.animation_frames[int(self.frame_index)]
+        self.f_index += ANIMATION_SPEED * dt
+        self.f_index = 0 if self.f_index >= len(self.animation_frames) else self.f_index
+        self.image = self.animation_frames[int(self.f_index)]
 
     def update(self, dt):
         self.animate(dt)
 
 
-class Particle(Animated):
+class Particle(Animations):
     def __init__(self, assets, pos, group):
         super().__init__(assets, pos, group)
         self.rect = self.image.get_rect(center=pos)
 
     def animate(self, dt):
-        self.frame_index += ANIMATION_SPEED * dt
-        if self.frame_index < len(self.animation_frames):
-            self.image = self.animation_frames[int(self.frame_index)]
+        self.f_index += ANIMATION_SPEED * dt
+        if self.f_index < len(self.animation_frames):
+            self.image = self.animation_frames[int(self.f_index)]
         else:
             self.kill()
 
 
-class Coin(Animated):
+class Coins(Animations):
     def __init__(self, coin_type, assets, pos, group):
         super().__init__(assets, pos, group)
         self.rect = self.image.get_rect(center=pos)
-        self.coin_type = coin_type
+        self.type_coin = coin_type
 
 
 # enemies
-class Spikes(Generic):
+class Spears(Global):
     def __init__(self, surf, pos, group):
         super().__init__(pos, surf, group)
         self.mask = pygame.mask.from_surface(self.image)
 
 
-class Tooth(Generic):
+class Tooth(Global):
     def __init__(self, assets, pos, group, collision_sprites):
 
         # general setup
@@ -142,11 +142,11 @@ class Tooth(Generic):
         self.move(dt)
 
 
-class Shell(Generic):
-    def __init__(self, orientation, assets, pos, group, pearl_surf, damage_sprites):
-        self.orientation = orientation
+class SeaShell(Global):
+    def __init__(self, direction, assets, pos, group, pearl_surf, damage_sprites):
+        self.direction = direction
         self.animation_frames = assets.copy()
-        if orientation == 'right':
+        if direction == 'right':
             for key, value in self.animation_frames.items():
                 self.animation_frames[key] = [pygame.transform.flip(surf, True, False) for surf in value]
 
@@ -172,8 +172,8 @@ class Shell(Generic):
         self.image = current_animation[int(self.frame_index)]
 
         if int(self.frame_index) == 2 and self.status == 'attack' and not self.has_shot:
-            pearl_direction = vector(-1, 0) if self.orientation == 'left' else vector(1, 0)
-            offset = (pearl_direction * 50) + vector(0, -10) if self.orientation == 'left' else (pearl_direction * 20) + vector(0, -10)
+            pearl_direction = vector(-1, 0) if self.direction == 'left' else vector(1, 0)
+            offset = (pearl_direction * 50) + vector(0, -10) if self.direction == 'left' else (pearl_direction * 20) + vector(0, -10)
             Pearl(self.rect.center + offset, pearl_direction, self.pearl_surf, [self.groups()[0], self.damage_sprites])
             self.has_shot = True
 
@@ -190,7 +190,7 @@ class Shell(Generic):
         self.attack_cooldown.update()
 
 
-class Pearl(Generic):
+class Pearl(Global):
     def __init__(self, pos, direction, surf, group):
         super().__init__(pos, surf, group)
         self.mask = pygame.mask.from_surface(self.image)
@@ -215,7 +215,7 @@ class Pearl(Generic):
             self.kill()
 
 
-class Player(Generic):
+class Player(Global):
     def __init__(self, pos, assets, group, collision_sprites, jump_sound, switch):
 
         self.switch = switch
@@ -328,7 +328,7 @@ class Player(Generic):
         self.direction.y += self.gravity * dt
         self.rect.y += self.direction.y
 
-    def check_on_floor(self):
+    def check_on_ground(self):
         floor_rect = pygame.Rect(self.hitbox.bottomleft, (self.hitbox.width, 2))
         floor_sprites = [sprite for sprite in self.collision_sprites if sprite.rect.colliderect(floor_rect)]
         self.on_floor = True if floor_sprites else False
@@ -350,7 +350,7 @@ class Player(Generic):
         self.input()
         self.apply_gravity(dt)
         self.move(dt)
-        self.check_on_floor()
+        self.check_on_ground()
         self.invul_timer.update()
         self.basic_health()
 
